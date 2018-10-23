@@ -7,36 +7,52 @@ class OrderController extends BaseController {
     /**
      * The available commands
      */
-    private $commands = [
+    const COMMANDS = [
         'prepare',
         'grab',
         'set',
         'done',
-        'help'
+        'cancel',
+        'help',
     ];
 
     /**
      * The available brews
      */
-    private $drinks = [
+    const DRINKS = [
         'coffee',
         'tea'
     ];
 
     /**
      * The user arguments
-     *
      * @var array
      */
     private $args;
 
     /**
-     * User's comments for his order
-     *
-     * @var
+     * The command user typed
+     * @var null
      */
-    private $comments;
+    private $command = null;
 
+    /**
+     * The comments user typed
+     * @var null
+     */
+    private $comments = null;
+
+    /**
+     * The type of the drink user selected
+     * @var null
+     */
+    private $type = null;
+
+    /**
+     * Handle the post request
+     *
+     * @return bool|false|string
+     */
     public function post()
     {
         //Validate the post and grab the arguments
@@ -66,8 +82,7 @@ class OrderController extends BaseController {
 
     private function storeOrder()
     {
-        print_r($this->comments);
-        return "Getting Order";
+        return json_encode([$this->command , $this->type , $this->comments]);
     }
 
     private function setOrder()
@@ -88,26 +103,30 @@ class OrderController extends BaseController {
         //Grab the post data
         $post = htmlspecialchars($_POST['text'], ENT_QUOTES);
 
-        //Seperate arguments and comments and make sure the command is an available command
-        $this->args = explode(" ", $post);
-        $this->comments = explode(":", $post);
+        //Seperate arguments and comments and make run some validations
+        $parts          = explode(":", $post);
+        $this->args     = explode(" ", $parts[0]);
+        $this->command  = $this->args[0];
+        $this->type     = $this->args[1];
+        $this->comments = $parts[1];
 
-        if (empty($this->args[0])) {
+
+        if (empty($this->command)) {
             $msg = 'Welcome to BrewMe. Type `/brew help` for the full list of all valid commands';
             return $this->respond($msg);
         }
-        else if (!in_array($this->args[0], $this->commands)) {
-            $msg = '`' . $this->args[0] . '` is not a valid command. Type `brew help` for the full list of valid commands';
+        else if (!in_array($this->command, self::COMMANDS)) {
+            $msg = '`' . $this->command . '` is not a valid command. Type `brew help` for the full list of valid commands';
             return $this->respond($msg);
         }
 
-        if ($this->args[0] === 'prepare') {
-            if (empty($this->args[1])) {
-                $msg = 'Welcome to BrewMe. Type `/brew help` for the full list of all valid commands';
+        if ($this->command === 'prepare') {
+            if (empty($this->type)) {
+                $msg = 'You must declare the type of the drink. Type `/brew help` for the full list of all valid commands';
                 return $this->respond($msg);
             }
-            else if (!in_array($this->args[1], $this->drinks)) {
-                $msg = 'Sorry but we don\'t currently serve `' . $this->args[1] . '`. Type `brew help` for the full list of valid commands and drinks.';
+            else if (!in_array($this->type, self::DRINKS)) {
+                $msg = 'Sorry but we don\'t currently serve `' . $this->type . '`. Type `brew help` for the full list of valid commands and drinks.';
                 return $this->respond($msg);
             }
         }
