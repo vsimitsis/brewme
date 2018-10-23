@@ -155,7 +155,7 @@ class OrderController extends BaseController {
     {
         return json_encode([
             'response_type' => "in_channel",
-            "text" => "BrewMe Awesome Documentation",
+            "text" => "Brew ordering system powered by Buildempire",
             "attachments" => [
                 [
                     "text" => $msg
