@@ -11,6 +11,7 @@ class OrderController extends BaseController {
         'prepare',
         'grab',
         'set',
+        'done',
         'help'
     ];
 
@@ -53,6 +54,8 @@ class OrderController extends BaseController {
             case 'set':
                 return $this->setOrder();
                 break;
+            case 'done':
+                return $this->done();
             case 'help':
                 return $this->getHelp();
                 break;
@@ -70,6 +73,11 @@ class OrderController extends BaseController {
     private function setOrder()
     {
         return "Setting Order";
+    }
+
+    private function done()
+    {
+        return 'Done all orders';
     }
 
     /**
@@ -92,9 +100,16 @@ class OrderController extends BaseController {
             $msg = '`' . $this->args[0] . '` is not a valid command. Type `brew help` for the full list of valid commands';
             return $this->respond($msg);
         }
-        else if (!in_array($this->args[1], $this->drinks)) {
-            $msg = 'Sorry but we don\'t currently serve `' . $this->args[1] . '`. Type `brew help` for the full list of valid commands and drinks.';
-            return $this->respond($msg);
+
+        if ($this->args[0] === 'prepare') {
+            if (empty($this->args[1])) {
+                $msg = 'Welcome to BrewMe. Type `/brew help` for the full list of all valid commands';
+                return $this->respond($msg);
+            }
+            else if (!in_array($this->args[1], $this->drinks)) {
+                $msg = 'Sorry but we don\'t currently serve `' . $this->args[1] . '`. Type `brew help` for the full list of valid commands and drinks.';
+                return $this->respond($msg);
+            }
         }
         return false;
     }
