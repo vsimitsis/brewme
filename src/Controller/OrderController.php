@@ -15,11 +15,26 @@ class OrderController {
     ];
 
     /**
+     * The available brews
+     */
+    private $drinks = [
+        'coffee',
+        'tea'
+    ];
+
+    /**
      * The user arguments
      *
      * @var array
      */
     private $args;
+
+    /**
+     * User's comments for his order
+     *
+     * @var
+     */
+    private $comments;
 
     public function post()
     {
@@ -48,6 +63,7 @@ class OrderController {
 
     private function storeOrder()
     {
+        print_r($this->comments);
         return "Getting Order";
     }
 
@@ -64,18 +80,22 @@ class OrderController {
         //Grab the post data
         $post = htmlspecialchars($_POST['text'], ENT_QUOTES);
 
-        //Seperate arguments and make sure the command is an available command
+        //Seperate arguments and comments and make sure the command is an available command
         $this->args = explode(" ", $post);
+        $this->comments = explode(":", $post);
 
         if (empty($this->args[0])) {
-            $msg = 'Welcome to BrewMe. Type `/brew help` to list all valid commands';
+            $msg = 'Welcome to BrewMe. Type `/brew help` for the full list of all valid commands';
             return $this->respond($msg);
         }
         else if (!in_array($this->args[0], $this->commands)) {
-            $msg = '`' . $this->args[0] . '` is not a valid command. Have a look at `brew help` for valid commands';
+            $msg = '`' . $this->args[0] . '` is not a valid command. Type `brew help` for the full list of valid commands';
             return $this->respond($msg);
         }
-
+        else if (!in_array($this->args[1], $this->drinks)) {
+            $msg = 'Sorry but we don\'t currently serve `' . $this->args[1] . '`. Type `brew help` for the full list of valid commands and drinks.';
+            return $this->respond($msg);
+        }
         return false;
     }
 
@@ -87,16 +107,7 @@ class OrderController {
     private function getHelp()
     {
         $msg = "
-        Welcome to BrewMe!
-        - The command format for brew ordering is `/brew prepare {brew}:{extra}-{extra}`
-        Where `{brew}` Coffee or Tea
-              `{extra}` Milk or Sugar
-        - The command format for fridge ordering is `/brew grab {item}
-        Where `{item]` is just an item from the fridge
-        - The command format for ordering your default brew is `/brew order-default`
-        - The command format for setting your default brew is `/brew set-default {brew}:{extra}-{extra}`
-          Where `{brew}` Coffee or Tea
-              `{extra}` Milk or Sugar
+        We need to write the help part
         ";
         return $this->respond($msg);
     }
@@ -107,7 +118,7 @@ class OrderController {
      * @param string $msg
      * @return false|string
      */
-    private function respond($msg = "There was a problem. Please try again or check `/brew help`")
+    private function respond($msg = "There was a problem. Please try again or type `/brew help`")
     {
         return json_encode([
             'response_type' => "in_channel",
