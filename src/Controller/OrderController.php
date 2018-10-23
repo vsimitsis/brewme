@@ -110,7 +110,6 @@ class OrderController extends BaseController {
         $this->type     = $this->args[1];
         $this->comments = $parts[1];
 
-
         if (empty($this->command)) {
             $msg = 'Welcome to BrewMe. Type `/brew help` for the full list of all valid commands';
             return $this->respond($msg);
