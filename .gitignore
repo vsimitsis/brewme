@@ -1,2 +1,4 @@
 /vendor/
 /docker-compose.yml
+/.env
+/.idea
