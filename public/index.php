@@ -2,11 +2,13 @@
 
 require_once __DIR__ . "/../vendor/autoload.php";
 
+header('Content-Type: application/json');
 $router = new Phroute\Phroute\RouteCollector();
 
-// Render one page only to start with
-$router->get('/orders', function() {
-  return (new BrewMe\Controller\OrderController())->get();
+
+// /brew command route
+$router->post('/orders', function() {
+    return (new BrewMe\Controller\OrderController())->post();
 });
 
 // Setup a dispatcher

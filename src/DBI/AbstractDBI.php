@@ -3,6 +3,7 @@
 namespace BrewMe\DBI;
 
 use PDO;
+use BrewMe\CFG;
 
 abstract class AbstractDBI {
    
@@ -12,9 +13,6 @@ abstract class AbstractDBI {
     $last_inserted_id,
     $affected_rows;
 
-  const
-    MYSQL_EC_DUPLICATE_ENTRY      = 1062;
-
   public static function connect_to_db(\stdClass $db_details = null) {
     // If there are no DB details passed then we fall back to default
     if(!$db_details) {
@@ -23,11 +21,11 @@ abstract class AbstractDBI {
 
     self::set_dbh(
         new PDO(
-        "mysql:host=".$db_details->host
+        "mysql:host=".CFG::get('MYSQL_HOST')
         .";dbname="
-        .$db_details->db_name, 
-        $db_details->user, 
-        $db_details->pass,
+        .CFG::get('MYSQL_DB_NAME') 
+        CFG::get('MYSQL_USER'),
+        CFG::get('MYSQL_PASS'),
         [
           PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
           PDO::ATTR_PERSISTENT => false,
