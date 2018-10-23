@@ -18,7 +18,14 @@ services:
             - .:/var/www/html
         depends_on:
             - composer
+            - db
         container_name: brewme-php
+    db:
+        image: mysql:5.7.23
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: Password
+        container_name: brewme-db
     composer:
         image: composer
         volumes:
