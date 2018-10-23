@@ -7,7 +7,7 @@ class OrderController {
     /**
      * The available commands
      */
-    const commands = [
+    private $commands = [
         'prepare',
         'grab',
         'set',
@@ -19,19 +19,27 @@ class OrderController {
      *
      * @var array
      */
-    protected $args = [];
+    private $args;
 
     public function post()
     {
         //Validate the post and grab the arguments
-        $this->validateInput();
+        if ($this->validateInput()) {
+            return $this->validateInput();
+        }
 
         switch ($this->args[0]) {
-            case '-help':
-                return $this->getHelp();
-                break;
-            case 'order':
+            case 'prepare':
                 return $this->storeOrder();
+                break;
+            case 'grab':
+                return $this->storeOrder();
+                break;
+            case 'set':
+                return $this->setOrder();
+                break;
+            case 'help':
+                return $this->getHelp();
                 break;
             default:
                 return $this->getHelp();
@@ -40,7 +48,12 @@ class OrderController {
 
     private function storeOrder()
     {
-        return "Order";
+        return "Getting Order";
+    }
+
+    private function setOrder()
+    {
+        return "Setting Order";
     }
 
     /**
@@ -54,14 +67,16 @@ class OrderController {
         //Seperate arguments and make sure the command is an available command
         $this->args = explode(" ", $post);
 
-        if (!isset($this->args[0])) {
-            $msg = 'Welcome to BrewMe. Have a look at `brew help` for valid commands';
+        if (empty($this->args[0])) {
+            $msg = 'Welcome to BrewMe. Type `/brew help` to list all valid commands';
             return $this->respond($msg);
         }
         else if (!in_array($this->args[0], $this->commands)) {
-            $msg = $this.args[0] . ' is not a valid command. Have a look at `brew help` for valid commands';
+            $msg = '`' . $this->args[0] . '` is not a valid command. Have a look at `brew help` for valid commands';
             return $this->respond($msg);
         }
+
+        return false;
     }
 
     /**
