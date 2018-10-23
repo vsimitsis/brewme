@@ -110,7 +110,6 @@ class OrderController extends BaseController {
         $this->type     = $this->args[1];
         $this->comments = $parts[1];
 
-
         if (empty($this->command)) {
             $msg = 'Welcome to BrewMe. Type `/brew help` for the full list of all valid commands';
             return $this->respond($msg);
@@ -156,7 +155,7 @@ class OrderController extends BaseController {
     {
         return json_encode([
             'response_type' => "in_channel",
-            "text" => "BrewMe Awesome Documentation",
+            "text" => "Brew ordering system powered by Buildempire",
             "attachments" => [
                 [
                     "text" => $msg
