@@ -56,11 +56,11 @@ class OrderController {
 
         if (!isset($this->args[0])) {
             $msg = 'Welcome to BrewMe. Have a look at `brew help` for valid commands';
-            return $this->error($msg);
+            return $this->respond($msg);
         }
         else if (!in_array($this->args[0], $this->commands)) {
             $msg = $this.args[0] . ' is not a valid command. Have a look at `brew help` for valid commands';
-            return $this->error($msg);
+            return $this->respond($msg);
         }
     }
 
@@ -71,7 +71,7 @@ class OrderController {
      */
     private function getHelp()
     {
-        $help = "
+        $msg = "
         Welcome to BrewMe!
         - The command format for brew ordering is `/brew prepare {brew}:{extra}-{extra}`
         Where `{brew}` Coffee or Tea
@@ -83,24 +83,16 @@ class OrderController {
           Where `{brew}` Coffee or Tea
               `{extra}` Milk or Sugar
         ";
-        return json_encode([
-            'response_type' => "in_channel",
-            "text" => "BrewMe Awesome Documentation",
-            "attachments" => [
-                [
-                    "text" => $help
-                ]
-            ]
-        ]);
+        return $this->respond($msg);
     }
 
     /**
-     * Returns an error response
+     * Returns a respond
      *
      * @param string $msg
      * @return false|string
      */
-    private function error($msg = "There was a problem. Please try again or check `/brew help`")
+    private function respond($msg = "There was a problem. Please try again or check `/brew help`")
     {
         return json_encode([
             'response_type' => "in_channel",
