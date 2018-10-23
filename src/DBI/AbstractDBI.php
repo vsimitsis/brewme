@@ -13,12 +13,7 @@ abstract class AbstractDBI {
     $last_inserted_id,
     $affected_rows;
 
-  public static function connect_to_db(\stdClass $db_details = null) {
-    // If there are no DB details passed then we fall back to default
-    if(!$db_details) {
-      $db_details = Config::get_data("db:default");
-    }
-
+  public static function connect_to_db() {
     self::set_dbh(
         new PDO(
         "mysql:host=".CFG::get('MYSQL_HOST')
