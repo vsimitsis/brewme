@@ -14,11 +14,21 @@
     ],
     "require": {
         "phroute/phroute" : "^2.1",
-        "vlucas/phpdotenv" : "^2"
+        "vlucas/phpdotenv" : "^2",
+        "robmorgan/phinx" : "^0.10"
     },
     "autoload" : {
         "psr-4": {
           "BrewMe\\" : "src/"
         }
+    },
+    "scripts" : {
+        "setup" : [
+            "./vendor/bin/phinx init"
+        ],
+        "db-setup" : [
+            "./vendor/bin/phinx migrate",
+            "./vendor/bin/phinx seed:run"
+        ]
     }
 }

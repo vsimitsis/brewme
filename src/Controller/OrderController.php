@@ -2,7 +2,7 @@
 
 namespace BrewMe\Controller;
 
-class OrderController {
+class OrderController extends BaseController {
 
     /**
      * The available commands
