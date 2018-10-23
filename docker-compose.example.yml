@@ -12,7 +12,7 @@ services:
             - php
         container_name: brewme-nginx
     php:
-        image: php:7.2-fpm
+        build: ./.docker/images/php/
         restart: always
         volumes:
             - .:/var/www/html
