@@ -1,0 +1,26 @@
+version: '3'
+services:
+    web:
+        image: nginx
+        volumes:
+            - ./.docker/conf/nginx/default.conf:/etc/nginx/conf.d/default.conf
+            - .:/var/www/html
+        ports:
+            - 8080:80
+        restart: always
+        depends_on:
+            - php
+        container_name: brewme-nginx
+    php:
+        image: php:7.2-fpm
+        restart: always
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            - composer
+        container_name: brewme-php
+    composer:
+        image: composer
+        volumes:
+            - .:/app
+        command: install

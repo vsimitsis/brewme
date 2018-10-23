@@ -1,0 +1,23 @@
+{
+    "name": "michal/hack-day18_brew-me",
+    "description": "BrewMe HackDay18 Project",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Michal Nagielski",
+            "email": "michal.nagielski@buildempire.co.uk"
+        },
+        {
+            "name": "Vagelis Simitsis",
+            "email": "vagelis.simitsis@buildempire.co.uk"
+        }
+    ],
+    "require": {
+        "phroute/phroute" : "^2.1"
+    },
+    "autoload" : {
+        "psr-4": {
+          "BrewMe\\" : "src/"
+        }
+    }
+}
