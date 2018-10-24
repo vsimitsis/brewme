@@ -96,13 +96,13 @@ class OrderController extends BaseController {
                 return $this->storeOrder();
                 break;
             case 'grab':
-                return $this->grabDrink();
+                return $this->storeOrder();
                 break;
             case 'list':
                 return $this->listOrders();
                 break;
             case 'set':
-                return $this->setOrder();
+                return $this->setPreferences();
                 break;
             case 'done':
                 return $this->done();
@@ -136,16 +136,18 @@ class OrderController extends BaseController {
         return $this->user;
     }
 
+    private function checkPendingOrders(){
+        return OrderDBI::getOrdersByUserIdAndStatus($this->user->id, Order::STATUS_PENDING) ?? false;
+    }
+
     private function storeOrder()
     {
-        $key = CFG::get("SLACK_OAUTH_ACCESS_TOKEN");
-        //Fetch the user
         $username = $_POST['user_name'];
 
         $this->confirmUser($username);
 
         // Check is user has outstanding orders
-        $pendingOrder = OrderDBI::getOrdersByUserIdAndStatus($this->user->id, Order::STATUS_PENDING);
+        $pendingOrder = $this->checkPendingOrders();
         if ($pendingOrder) {
             $pendingOrder = array_shift($pendingOrder);
             return $this->respond("You already have an order pending for " . $pendingOrder['type'] . " :seriouscat:");
@@ -163,11 +165,6 @@ class OrderController extends BaseController {
         $msg .= "is on the way!";  
 
         return $this->respond($msg);
-    }
-
-    private function grabDrink()
-    {
-        return $this->respond("Todo...");
     }
 
     private function listOrders()
@@ -191,9 +188,9 @@ class OrderController extends BaseController {
         return $msg;
     }
 
-    private function setOrder()
+    private function setPreferences()
     {
-        return "Setting Order";
+        return "Setting Preferences";
     }
 
     private function done()
