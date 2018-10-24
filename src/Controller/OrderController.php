@@ -70,10 +70,10 @@ class OrderController extends BaseController {
     private function getRandomCheer()
     {
         $strings = [
-            'Whoop Whoop! ',
-            'Yayyy! ',
-            'Awesome! ',
-            'Woohooo! '
+            ':thumbsup: Whoop Whoop! ',
+            ':thumbsup: Yayyy! ',
+            ':thumbsup: Awesome! ',
+            ':thumbsup: Woohooo! '
         ];
 
         return $strings[rand(0,3)];
@@ -137,8 +137,12 @@ class OrderController extends BaseController {
         return $this->user;
     }
 
-    private function checkPendingOrders(){
+    private function checkUserPendingOrders(){
         return OrderDBI::getOrdersByUserIdAndStatus($this->user->id, Order::STATUS_PENDING) ?? false;
+    }
+
+    private function checkPendingOrders(){
+        return OrderDBI::getOrdersByStatus(Order::STATUS_PENDING) ?? false;
     }
 
     private function storeOrder()
@@ -148,10 +152,18 @@ class OrderController extends BaseController {
         $this->confirmUser($username);
 
         // Check is user has outstanding orders
-        $pendingOrder = $this->checkPendingOrders();
+        $pendingOrder = $this->checkUserPendingOrders();
         if ($pendingOrder) {
             $pendingOrder = array_shift($pendingOrder);
             return $this->respond("You already have an order pending for " . $pendingOrder['type'] . " :seriouscat:");
+        }
+
+        // Check for preferences if there are no comments
+        if (!$this->comments) {
+            $userPreferences = UserDBI::getUserPreferencesByUserIdAndType($this->user->id, $this->type);
+            if ($userPreferences) {
+                $this->comments = $userPreferences['comments'];
+            }
         }
 
         $orderId = OrderDBI::createOrder([
@@ -163,7 +175,7 @@ class OrderController extends BaseController {
 
         $msg = $this->getRandomCheer();
         $msg .= "Your {$this->type} " . ($this->comments ? "with " . $this->comments  : '') . " ";
-        $msg .= "is on the way!";  
+        $msg .= "is on the way! :onmyway:";  
 
         return $this->respond($msg);
     }
@@ -194,6 +206,10 @@ class OrderController extends BaseController {
     {
         $this->confirmUser($_POST['user_name']);
 
+        if (!$this->comments) {
+            return $this->respond("You didn't specify any comments! :goberserk:");
+        }
+
         // Delete current preferences
         UserDBI::upsertUserPreferences([
             'user_id' => $this->user->id,
@@ -201,13 +217,18 @@ class OrderController extends BaseController {
             'comments' => $this->comments
         ]);
 
-        return "Preferences set!";
+        return $this->respond("Preferences set! :carlton:");
     }
 
     private function done()
     {
-        OrderDBI::changeOrdersStatus(Order::STATUS_PENDING, Order::STATUS_DONE);
-        return 'All outstanding orders marked done.';
+        if ($this->checkPendingOrders()) {
+            OrderDBI::changeOrdersStatus(Order::STATUS_PENDING, Order::STATUS_DONE);
+            return $this->respond("Thank you for making brews! You are a true star :star:");            
+        }
+
+        return $this->respond("No pending orders :mamamia:");            
+
     }
 
     private function cancel()
@@ -267,34 +288,34 @@ class OrderController extends BaseController {
      */
     private function getHelp()
     {
-        $text = "BrewMe is a brew ordering system slack app powered by Buildempire.\n";
-        $text .= "Available brews are `coffee` and `tea` but you can order anything else with the `grab` command\n";
-        $text .= "You can have only 1 pending order. Our UK servers can\'t handle that tea consumption.\n";
-        $text .= "Available commands:\n";
-        $text .= "-Ordering a brew format is `/brew make {type}:{comments}`\n";
-        $text .= "-Ordering an item format is `/brew grab {item}\n";
-        $text .= "-Setting your default brew format is `/brew set {type}:{comments}`\n";
-        $text .= "-Getting the list of all orders format is `/brew list`\n";
-        $text .= "-Cancelling your order format is `/brew cancel`\n";
-        $text .= "-Getting BrewMe documentation and info format is `/brew help`. Obvious";
+        $text = "Available commands:\n";
+        $text .= "- `/brew make {type}:{comments}` for ordering a brew. \n";
+        $text .= "- `/brew grab {item}` for ordering any drink/item.\n";
+        $text .= "- `/brew set {type}:{comments}` for settings your default preference.\n";
+        $text .= "- `/brew list` for getting a list of all pending brews.\n";
+        $text .= "- `/brew cancel` for cancelling a pending order.\n";
+        $text .= "- `/brew help` for seeing what you see now. Obvious\n\n";
+        $text .= "Rules:\n";
+        $text .= "- You can set 1 default preference for each available drink. Then you can order only by type and load the default comments.";
+        $text .= "- Available drinks are `coffee` and `tea`. Or you can order anything with the `grab` command.\n";
+        $text .= "- You can have only 1 pending order at a time. Our UK servers can't handle that tea consumption.";
 
         return json_encode([
             'response_type' => "in_channel",
             "attachments" => [
                 [
                     "pretext" => "BrewMe Information & Help",
-                    "author_name" => "Michal & Vagelis Winners of Hackday2018",
+                    "author_name" => "Vagelis & Michal, Winners of Hackday2018",
                     "title" => "BrewMe Documentation",
                     "title_link" => "https://github.com/BuildEmpire/HackDay18_BrewMe",
                     "text" => $text,
                     "color" => "#058e5d",
                     "footer" =>"Brew ordering system powered by Buildempire",
-                    "footer_icon" =>"https://buildempire.co.uk/wp-content/themes/buildempire2016/favicon-32x32.png?v=2",
+                    "footer_icon" => "https://buildempire.co.uk/wp-content/themes/buildempire2016/favicon-32x32.png?v=2",
                 ]
             ]
         ]);
     }
-
 
     /**
      * Returns a respond
