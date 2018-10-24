@@ -55,6 +55,13 @@ class OrderController extends BaseController {
      */
     private $type = null;
 
+
+    /**
+     * Representing user requesting brewme
+     * @var User|null
+     */
+    private $user = null;
+
     /**
      * Return a string with a random prefix
      * 
@@ -107,29 +114,43 @@ class OrderController extends BaseController {
         }
     }
 
+    private function confirmUser($username)
+    {
+        $user = UserDBI::findUserByUsername($username);
+
+        if ($user) {
+            $this->user = new User($user);
+        } else {
+            // Create new user
+            $userId = UserDBI::createUser([
+                'username' => $username
+            ]);
+            $this->user = new User([
+                'id' => $userId,
+                'username' => $username
+            ]);
+        }
+
+        return $this->user;
+    }
+
     private function storeOrder()
     {
         $key = CFG::get("SLACK_OAUTH_ACCESS_TOKEN");
         //Fetch the user
         $username = $_POST['user_name'];
 
-        $user = UserDBI::findUserByUsername($username);
+        $this->confirmUser($username);
 
-        if ($user) {
-            $user = new User($user);
-        } else {
-            // Create new user
-            $userId = UserDBI::createUser([
-                'username' => $username
-            ]);
-            $user = new User([
-                'id' => $userId,
-                'username' => $username
-            ]);
+        // Check is user has outstanding orders
+        $pendingOrder = OrderDBI::getOrdersByUserIdAndStatus($this->user->id, Order::STATUS_PENDING);
+        if ($pendingOrder) {
+            $pendingOrder = array_shift($pendingOrder);
+            return $this->respond("You already have an order pending for " . $pendingOrder['type'] . " :seriouscat:");
         }
 
         $orderId = OrderDBI::createOrder([
-            'user_id' => $user->id,
+            'user_id' => $this->user->id,
             'type' => $this->type,
             'comments' => $this->comments,
             'status' => Order::STATUS_PENDING

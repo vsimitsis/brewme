@@ -15,14 +15,17 @@ class OrderDBI extends AbstractDBI {
         return self::query($q, [$toStatus, $fromStatus]);
     }
 
-    public static function updateOrderStatus(int $orderId, int $status) {}
-
     public static function getOrdersByStatus(int $status) {
         $q = "SELECT u.username, o.type, o.comments, o.created_at  
                 FROM " . self::TABLE_ORDERS . " o 
                 INNER JOIN " . self::TABLE_USERS . " u ON u.id = o.user_id
                 WHERE o.status = ?"; 
         return self::query_and_fetch($q, [$status]);
+    }
+
+    public static function getOrdersByUserIdAndStatus(int $userId, int $status) {
+        $q = "SELECT * FROM " . self::TABLE_ORDERS . " WHERE user_id = ? AND status = ?";
+        return self::query_and_fetch($q, [$userId, $status]);
     }
 
 }
