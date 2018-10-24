@@ -106,6 +106,8 @@ class OrderController extends BaseController {
                 break;
             case 'done':
                 return $this->done();
+            case 'cancel':
+                return $this->cancel();
             case 'help':
                 return $this->getHelp();
                 break;
@@ -198,6 +200,19 @@ class OrderController extends BaseController {
     {
         OrderDBI::changeOrdersStatus(Order::STATUS_PENDING, Order::STATUS_DONE);
         return 'All outstanding orders marked done.';
+    }
+
+    private function cancel()
+    {
+        $this->confirmUser($_POST['user_name']);
+        // Check is user has outstanding orders
+        $pendingOrders = OrderDBI::getOrdersByUserIdAndStatus($this->user->id, Order::STATUS_PENDING);
+        if ($pendingOrders) {
+            foreach ($pendingOrders as $pendingOrder) {
+                OrderDBI::changeOrderStatus($pendingOrder['id'], Order::STATUS_CANCELLED);
+            }
+        }
+        return $this->respond("Your order has been canceled :glitch_crab:");
     }
 
     /**

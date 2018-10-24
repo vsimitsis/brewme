@@ -15,6 +15,11 @@ class OrderDBI extends AbstractDBI {
         return self::query($q, [$toStatus, $fromStatus]);
     }
 
+    public static function changeOrderStatus($orderId, $toStatus) {
+        $q = "UPDATE " . self::TABLE_ORDERS . " SET status = ? WHERE id = ?";
+        return self::query($q, [$toStatus, $orderId]);
+    }
+
     public static function getOrdersByStatus(int $status) {
         $q = "SELECT u.username, o.type, o.comments, o.created_at  
                 FROM " . self::TABLE_ORDERS . " o 
