@@ -2,6 +2,8 @@
 
 namespace BrewMe\Controller;
 
+use BrewMe\Model\Order;
+
 class OrderController extends BaseController {
 
     /**
@@ -82,6 +84,28 @@ class OrderController extends BaseController {
 
     private function storeOrder()
     {
+        //Fetch the user
+        $username = $_POST['user_name'];
+
+//        $user = DBI\UserDBI::getByUsername($username);
+//        if ($user) {
+//            $user = new User($user);
+//        } else {
+//            // Create new user
+//            $userId = DBI\UserDBI::createUser([...]);
+//            $user = new User([
+//               'id' => $userId,
+//               'username' => $username
+//            ]);
+//        }
+//
+//        $order = new Order([
+//            'user_id' => $user->id,
+//            'type' => $this->type,
+//            'comments' => $this->comments,
+//            'status' => Order::STATUS_PENDING
+//        ]);
+
         return json_encode([$this->command , $this->type , $this->comments]);
     }
 
