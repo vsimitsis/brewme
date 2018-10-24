@@ -23,7 +23,7 @@ abstract class AbstractDBI {
         new PDO(
         "mysql:host=".CFG::get('MYSQL_HOST')
         .";dbname="
-        .CFG::get('MYSQL_DB_NAME') 
+        .CFG::get('MYSQL_DB_NAME'),
         CFG::get('MYSQL_USER'),
         CFG::get('MYSQL_PASS'),
         [
@@ -173,6 +173,12 @@ abstract class AbstractDBI {
   protected static function _get_all($table) {
     $arr_data = self::query_and_fetch("SELECT * FROM {$table}");
     return !empty($arr_data) ? $arr_data : null;
+  }
+
+  protected static function default_insert(array $arr_required_fields, array $arr_data, $str_table_name) {
+    $q = "INSERT INTO $str_table_name (".self::array_to_insert_args($arr_required_fields).") VALUES (".self::array_to_insert_placeholders($arr_required_fields).")";
+    self::query($q, self::array_to_query_args($arr_data));
+    return self::get_last_inserted_id();
   }
   
 }

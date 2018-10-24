@@ -26,6 +26,8 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: Password
         container_name: brewme-db
+        volumes:
+            - /your/db/dir:/var/lib/mysql
     composer:
         image: composer
         volumes:

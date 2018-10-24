@@ -4,6 +4,7 @@ namespace BrewMe\Controller;
 
 use BrewMe\CFG;
 use BrewMe\DBI\UserDBI;
+use BrewMe\DBI\OrderDBI;
 use BrewMe\Model\Order;
 use BrewMe\Model\User;
 
@@ -13,8 +14,9 @@ class OrderController extends BaseController {
      * The available commands
      */
     const COMMANDS = [
-        'prepare',
+        'make',
         'grab',
+        'list',
         'set',
         'done',
         'cancel',
@@ -54,6 +56,23 @@ class OrderController extends BaseController {
     private $type = null;
 
     /**
+     * Return a string with a random prefix
+     * 
+     * @return string
+     */
+    private function getRandomCheer()
+    {
+        $strings = [
+            'Whoop Whoop! ',
+            'Yayyy! ',
+            'Awesome! ',
+            'Woohooo! '
+        ];
+
+        return $strings[rand(0,3)];
+    }
+
+    /**
      * Handle the post request
      *
      * @return bool|false|string
@@ -66,11 +85,14 @@ class OrderController extends BaseController {
         }
 
         switch ($this->args[0]) {
-            case 'prepare':
+            case 'make':
                 return $this->storeOrder();
                 break;
             case 'grab':
-                return $this->storeOrder();
+                return $this->grabDrink();
+                break;
+            case 'list':
+                return $this->listOrders();
                 break;
             case 'set':
                 return $this->setOrder();
@@ -97,19 +119,53 @@ class OrderController extends BaseController {
             $user = new User($user);
         } else {
             // Create new user
-            $user = UserDBI::createUser([
+            $userId = UserDBI::createUser([
+                'username' => $username
+            ]);
+            $user = new User([
+                'id' => $userId,
                 'username' => $username
             ]);
         }
 
-        $order = new Order([
+        $orderId = OrderDBI::createOrder([
             'user_id' => $user->id,
             'type' => $this->type,
             'comments' => $this->comments,
             'status' => Order::STATUS_PENDING
         ]);
 
-        return json_encode([$this->command , $this->type , $this->comments]);
+        $msg = $this->getRandomCheer();
+        $msg .= "Your {$this->type} " . ($this->comments ? "with " . $this->comments  : '') . " ";
+        $msg .= "is on the way!";  
+
+        return $this->respond($msg);
+    }
+
+    private function grabDrink()
+    {
+        return $this->respond("Todo...");
+    }
+
+    private function listOrders()
+    {
+        $orders = OrderDBI::getOrdersByStatus(Order::STATUS_PENDING);
+        if (!$orders) {
+            return $this->respond("Not a single brew to do... :canttouchthis:");
+        }
+
+        return $this->respond(count($orders) . " brews due...\n" . $this->ordersToSlackResponse($orders));
+    }
+
+    private function ordersToSlackResponse(array $orders)
+    {
+        $msg = '';
+        foreach ($orders as $order) {
+            $msg .= $order['username'] . " ordered " . $order['type'];
+            $msg .= $order['comments'] ? " with " . $order['comments'] : '';
+            $msg .= "\n";
+        }
+        return $msg;
     }
 
     private function setOrder()
@@ -119,7 +175,8 @@ class OrderController extends BaseController {
 
     private function done()
     {
-        return 'Done all orders';
+        OrderDBI::changeOrdersStatus(Order::STATUS_PENDING, Order::STATUS_DONE);
+        return 'All outstanding orders marked done.';
     }
 
     /**
@@ -133,9 +190,9 @@ class OrderController extends BaseController {
         //Seperate arguments and comments and make run some validations
         $parts          = explode(":", $post);
         $this->args     = explode(" ", $parts[0]);
-        $this->command  = $this->args[0];
-        $this->type     = $this->args[1];
-        $this->comments = $parts[1];
+        $this->command  = trim($this->args[0]);
+        $this->type     = trim($this->args[1]);
+        $this->comments = $parts[1] ? trim($parts[1]) : null;
 
         if (empty($this->command)) {
             $msg = 'Welcome to BrewMe. Type `/brew help` for the full list of all valid commands';
@@ -146,7 +203,7 @@ class OrderController extends BaseController {
             return $this->respond($msg);
         }
 
-        if ($this->command === 'prepare') {
+        if ($this->command === 'make') {
             if (empty($this->type)) {
                 $msg = 'You must declare the type of the drink. Type `/brew help` for the full list of all valid commands';
                 return $this->respond($msg);
@@ -185,7 +242,8 @@ class OrderController extends BaseController {
             "text" => "Brew ordering system powered by Buildempire",
             "attachments" => [
                 [
-                    "text" => $msg
+                    "text" => $msg,
+                    "color" => "#058e5d"
                 ]
             ]
         ]);

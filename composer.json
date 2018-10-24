@@ -21,14 +21,5 @@
         "psr-4": {
           "BrewMe\\" : "src/"
         }
-    },
-    "scripts" : {
-        "setup" : [
-            "./vendor/bin/phinx init"
-        ],
-        "db-setup" : [
-            "./vendor/bin/phinx migrate",
-            "./vendor/bin/phinx seed:run"
-        ]
     }
 }
