@@ -7,6 +7,11 @@ use BrewMe\CFG;
 
 abstract class AbstractDBI {
    
+  const 
+    TABLE_USERS = 'users',
+    TABLE_USER_PREFERENCES = 'user_preferences',
+    TABLE_ORDERS = 'orders';
+
   /** @var PDO object containing a connection do the db */
   private static
     $dbh,
