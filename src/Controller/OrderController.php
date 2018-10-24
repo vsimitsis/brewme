@@ -87,8 +87,9 @@ class OrderController extends BaseController {
     public function post()
     {
         //Validate the post and grab the arguments
-        if ($this->validateInput()) {
-            return $this->validateInput();
+        $validationErrors = $this->validateInput();
+        if ($validationErrors) {
+            return $validationErrors;
         }
 
         switch ($this->args[0]) {
@@ -174,7 +175,8 @@ class OrderController extends BaseController {
             return $this->respond("Not a single brew to do... :canttouchthis:");
         }
 
-        return $this->respond(count($orders) . " brews due...\n" . $this->ordersToSlackResponse($orders));
+
+        return $this->respond(count($orders) . " brew". (count($orders) > 1 ? 's' : '') ." due...\n" . $this->ordersToSlackResponse($orders));
     }
 
     private function ordersToSlackResponse(array $orders)
@@ -190,7 +192,16 @@ class OrderController extends BaseController {
 
     private function setPreferences()
     {
-        return "Setting Preferences";
+        $this->confirmUser($_POST['user_name']);
+
+        // Delete current preferences
+        UserDBI::upsertUserPreferences([
+            'user_id' => $this->user->id,
+            'type' => $this->type,
+            'comments' => $this->comments
+        ]);
+
+        return "Preferences set!";
     }
 
     private function done()
@@ -236,7 +247,7 @@ class OrderController extends BaseController {
             return $this->respond($msg);
         }
 
-        if ($this->command === 'make') {
+        if ($this->command === 'make' || $this->command === 'set') {
             if (empty($this->type)) {
                 $msg = 'You must declare the type of the drink. Type `/brew help` for the full list of all valid commands';
                 return $this->respond($msg);
@@ -256,11 +267,34 @@ class OrderController extends BaseController {
      */
     private function getHelp()
     {
-        $msg = "
-        We need to write the help part
-        ";
-        return $this->respond($msg);
+        $text = "BrewMe is a brew ordering system slack app powered by Buildempire.\n";
+        $text .= "Available brews are `coffee` and `tea` but you can order anything else with the `grab` command\n";
+        $text .= "You can have only 1 pending order. Our UK servers can\'t handle that tea consumption.\n";
+        $text .= "Available commands:\n";
+        $text .= "-Ordering a brew format is `/brew make {type}:{comments}`\n";
+        $text .= "-Ordering an item format is `/brew grab {item}\n";
+        $text .= "-Setting your default brew format is `/brew set {type}:{comments}`\n";
+        $text .= "-Getting the list of all orders format is `/brew list`\n";
+        $text .= "-Cancelling your order format is `/brew cancel`\n";
+        $text .= "-Getting BrewMe documentation and info format is `/brew help`. Obvious";
+
+        return json_encode([
+            'response_type' => "in_channel",
+            "attachments" => [
+                [
+                    "pretext" => "BrewMe Information & Help",
+                    "author_name" => "Michal & Vagelis Winners of Hackday2018",
+                    "title" => "BrewMe Documentation",
+                    "title_link" => "https://github.com/BuildEmpire/HackDay18_BrewMe",
+                    "text" => $text,
+                    "color" => "#058e5d",
+                    "footer" =>"Brew ordering system powered by Buildempire",
+                    "footer_icon" =>"https://buildempire.co.uk/wp-content/themes/buildempire2016/favicon-32x32.png?v=2",
+                ]
+            ]
+        ]);
     }
+
 
     /**
      * Returns a respond
@@ -272,11 +306,12 @@ class OrderController extends BaseController {
     {
         return json_encode([
             'response_type' => "in_channel",
-            "text" => "Brew ordering system powered by Buildempire",
             "attachments" => [
                 [
                     "text" => $msg,
-                    "color" => "#058e5d"
+                    "color" => "#058e5d",
+                    "footer" =>"Brew ordering system powered by Buildempire",
+                    "footer_icon" =>"https://buildempire.co.uk/wp-content/themes/buildempire2016/favicon-32x32.png?v=2",
                 ]
             ]
         ]);

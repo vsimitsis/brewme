@@ -18,16 +18,12 @@ class UserDBI extends AbstractDBI {
         return self::default_insert(['username'], $user, self::TABLE_USERS);
     }
 
-    public static function deleteUser(int $userId) {}
-
-    public static function findUserPreferences(int $userId) {}
-
-    public static function createUserPreferences(array $userPreferences) {}
-    
-    public static function updateUserPreferences(array $userPreferences) {}
-
-    public static function upsertUserPreferences(array $userPreferences) {}
-
-    public static function deleteUserPreferences(int $userId) {}
+    public static function upsertUserPreferences(array $userPreferences) {
+        $q = "INSERT INTO " . self::TABLE_USER_PREFERENCES . " (user_id, type, comments)
+              VALUES (:user_id, :type, :comments)
+              ON DUPLICATE KEY UPDATE
+              comments     = :comments";
+        return self::query($q, $userPreferences);
+    }
    
 }
