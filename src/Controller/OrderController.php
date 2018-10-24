@@ -2,7 +2,10 @@
 
 namespace BrewMe\Controller;
 
+use BrewMe\CFG;
+use BrewMe\DBI\UserDBI;
 use BrewMe\Model\Order;
+use BrewMe\Model\User;
 
 class OrderController extends BaseController {
 
@@ -84,27 +87,27 @@ class OrderController extends BaseController {
 
     private function storeOrder()
     {
+        $key = CFG::get("SLACK_OAUTH_ACCESS_TOKEN");
         //Fetch the user
         $username = $_POST['user_name'];
 
-//        $user = DBI\UserDBI::getByUsername($username);
-//        if ($user) {
-//            $user = new User($user);
-//        } else {
-//            // Create new user
-//            $userId = DBI\UserDBI::createUser([...]);
-//            $user = new User([
-//               'id' => $userId,
-//               'username' => $username
-//            ]);
-//        }
-//
-//        $order = new Order([
-//            'user_id' => $user->id,
-//            'type' => $this->type,
-//            'comments' => $this->comments,
-//            'status' => Order::STATUS_PENDING
-//        ]);
+        $user = UserDBI::findUserByUsername($username);
+
+        if ($user) {
+            $user = new User($user);
+        } else {
+            // Create new user
+            $user = UserDBI::createUser([
+                'username' => $username
+            ]);
+        }
+
+        $order = new Order([
+            'user_id' => $user->id,
+            'type' => $this->type,
+            'comments' => $this->comments,
+            'status' => Order::STATUS_PENDING
+        ]);
 
         return json_encode([$this->command , $this->type , $this->comments]);
     }

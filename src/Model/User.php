@@ -2,25 +2,15 @@
 
 namespace BrewMe\Model;
 
-class Order
+class User
 {
     public $user_id;
-    public $type;
-    public $status;
-    public $comments;
+    public $username;
     public $created_at;
     public $updated_at;
 
     /**
-     * The possible order statuses
-     */
-    const
-        STATUS_PENDING = 1,
-        STATUS_DONE = 2,
-        STATUS_CANCELLED = 3;
-
-    /**
-     * Order constructor.
+     * User constructor.
      *
      * @param array $attrs
      */
